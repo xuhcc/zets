@@ -1,44 +1,6 @@
 import tkinter as tk
 import math
-import colorsys
-
-def hsv360_to_hsv(h, s, v):
-    """
-    Hue:        0...360
-    Saturation: 0...100
-    Value:      0...100
-    """
-    h_ = h / 360
-    s_ = s / 100
-    v_ = v / 100
-    return h_, s_, v_
-
-def rgb_to_rgb256(r, g, b):
-    r_ = math.floor(r * 255)
-    g_ = math.floor(g * 255)
-    b_ = math.floor(b * 255)
-    return r_, g_, b_
-
-def rgb256_to_code(r, g, b):
-    hexr = hex(r)[2:].zfill(2)
-    hexg = hex(g)[2:].zfill(2)
-    hexb = hex(b)[2:].zfill(2)
-    code = "#" + hexr + hexg + hexb
-    return code
-
-def generate_gradient(color1, color2, r):
-    hsv1 = hsv360_to_hsv(*color1)
-    hsv2 = hsv360_to_hsv(*color2)
-    h_step = (hsv2[0] - hsv1[0]) / r
-    s_step = (hsv2[1] - hsv1[1]) / r
-    v_step = (hsv2[2] - hsv1[2]) / r
-    gradient = []
-    for i in range(0, r):
-        hsv = (hsv1[0] + i * h_step, hsv1[1] + i * s_step, hsv1[2] + i * v_step)
-        rgb = colorsys.hsv_to_rgb(*hsv)
-        code = rgb256_to_code(*rgb_to_rgb256(*rgb))
-        gradient.append(code)
-    return gradient
+import gradient
 
 
 class Julia(object):
@@ -49,9 +11,9 @@ class Julia(object):
         self.func = func
         self.maxiter = maxiter
         self.scale = scale
-        self.colors = generate_gradient(
-            (290, 10, 100),
-            (250, 100, 100),
+        self.colors = gradient.generate_gradient(
+            "#E1FFA2",
+            "#470063",
             self.maxiter)
         self.root = tk.Tk()
         self.root.title("Julia")
