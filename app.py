@@ -2,7 +2,6 @@ import tkinter as tk
 import gradient
 import julia
 
-
 class Window(object):
 
     def __init__(self, size_x, size_y, func, maxiter, scale):
@@ -29,16 +28,29 @@ class Window(object):
         self.canvas.pack()
         self.root.after(100, self.draw_set)
 
-    def draw_pixel(self, x, y, color="#000"):
-        self.canvas.create_line(x, y, x + 1, y + 1, fill=color, width=1)
-
     def draw_set(self):
+        """
+        Draw set using PhotoImage
+        """
+        ju = julia.generate_set(
+            self.func, self.size_x, self.size_y, self.scale, self.maxiter)
+        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
+        for x, y, i in ju:
+            if i > 0:
+                self.image.put(self.colors[i], (x, y))
+        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+
+    def draw_set_(self):
+        """
+        Draw set using lines
+        """
         ju = julia.generate_set(
             self.func, self.size_x, self.size_y, self.scale, self.maxiter)
         for x, y, i in ju:
             if i > 0:
-                self.draw_pixel(x, y, color=self.colors[i])
-
+                self.canvas.create_line(
+                    x, y, x + 1, y + 1, fill=self.colors[i], width=1)
+        
     def start(self):
         self.root.mainloop()
 
