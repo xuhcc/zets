@@ -26,7 +26,7 @@ class Window(object):
             bg=self.colors[0])
         self.canvas.bind("<Button-1>", lambda e: self.quit())
         self.canvas.pack()
-        self.root.after(100, self.draw_set)
+        self.root.after(100, self.draw_set_pi_str)
 
     def draw_set(self):
         """
@@ -38,6 +38,27 @@ class Window(object):
         for x, y, i in ju:
             if i > 0:
                 self.image.put(self.colors[i], (x, y))
+        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+
+    def draw_set_pi_str(self):
+        """
+        Draw set using PhotoImage, alternative method
+        """
+        ju = julia.generate_set(
+            self.func, self.size_x, self.size_y, self.scale, self.maxiter)
+        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
+        strmap = ""
+        for x, y, i in ju:
+            if x == 0:
+                strmap += "{"
+            strmap += self.colors[i]
+            if x == self.size_x - 1 and y == self.size_y - 1:
+                strmap += "}"
+            elif x == self.size_x - 1:
+                strmap += "} "
+            else:
+                strmap += " "
+        self.image.put(strmap)
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
     def draw_set_(self):
