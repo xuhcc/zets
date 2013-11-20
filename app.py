@@ -1,6 +1,20 @@
 import tkinter as tk
 import gradient
 import julia
+import threading
+import queue
+
+class Worker(threading.Thread):
+
+    def __init__(self, queue, *gargs):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.gargs = gargs
+
+    def run(self):
+        ju = julia.generate_map(*self.gargs)
+        for y, line in ju:
+            self.queue.put((y, line))
 
 class Window(object):
 
@@ -26,7 +40,6 @@ class Window(object):
             bg=self.colors[0])
         self.canvas.bind("<Button-1>", lambda e: self.quit())
         self.canvas.pack()
-        self.root.after(100, self.draw_set_pp)
 
     def draw_set_p(self):
         """
@@ -65,6 +78,31 @@ class Window(object):
                     x, y, x + 1, y + 1, fill=self.colors[i], width=1)
         
     def start(self):
+        self.root.after(100, self.draw_set_pp)
+        self.root.mainloop()
+
+    def periodic_call(self):
+        self.check_queue()
+        if self.worker.is_alive():
+            self.root.after(100, self.periodic_call)
+        else:
+            self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+
+    def check_queue(self):
+        while self.queue.qsize():
+            try:
+                y, line = self.queue.get()
+                self.image.put(line, to=(0, y))
+            except queue.Empty:
+                pass
+
+    def start_threaded(self):
+        self.queue = queue.Queue()
+        self.worker = Worker(self.queue,
+            self.func, self.size_x, self.size_y, self.scale, self.maxiter, self.colors)
+        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
+        self.worker.start()
+        self.root.after(100, self.periodic_call)
         self.root.mainloop()
 
     def quit(self):
