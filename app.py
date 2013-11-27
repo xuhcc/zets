@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 import gradient
 import julia
 import threading
@@ -34,8 +35,7 @@ class Window(object):
             self.maxiter)
         self.root = tk.Tk()
         self.root.title("Julia")
-        self.root.geometry("{0}x{1}+200+150".format(size_x + 2, size_y + 2))
-        self.root.overrideredirect(True)
+        self.root.geometry("{0}x{1}+100+50".format(size_x + 2, size_y + 22))
         self.canvas = tk.Canvas(
             self.root,
             width=self.size_x,
@@ -44,6 +44,13 @@ class Window(object):
             bg=self.colors[0])
         self.canvas.bind("<Button-1>", lambda e: self.quit())
         self.canvas.pack()
+        self.pgbar = tk.ttk.Progressbar(
+            self.root,
+            orient="horizontal",
+            mode="determinate",
+            length=size_x,
+            maximum=size_y)
+        self.pgbar.pack()
 
     def draw_set_p(self):
         """
@@ -91,6 +98,7 @@ class Window(object):
             try:
                 y, line = self.queue.get()
                 self.image.put(line, to=(0, y))
+                self.pgbar.step(1)
             except queue.Empty:
                 pass
         if self.worker.is_alive():
@@ -114,7 +122,7 @@ class Window(object):
 
 def main():
     func = lambda z: z ** 2 - 0.4 + 0.6j
-    app = Window(1000, 800, func, 100, 250)
+    app = Window(1200, 900, func, 100, 1000)
     app.start_threaded()
 
 if __name__ == "__main__":
