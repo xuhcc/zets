@@ -7,14 +7,18 @@ import queue
 class Worker(threading.Thread):
 
     def __init__(self, queue, *gargs):
+        """
+        Accepts:
+            queue: Queue object
+            gargs: arguments for map generating function
+        """
         threading.Thread.__init__(self)
         self.queue = queue
         self.gargs = gargs
 
     def run(self):
-        ju = julia.generate_map(*self.gargs)
-        for y, line in ju:
-            self.queue.put((y, line))
+        for item in julia.generate_map(*self.gargs):
+            self.queue.put(item)
 
 class Window(object):
 
@@ -82,19 +86,18 @@ class Window(object):
         self.root.mainloop()
 
     def periodic_call(self):
-        self.check_queue()
-        if self.worker.is_alive():
-            self.root.after(100, self.periodic_call)
-        else:
-            self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
-
-    def check_queue(self):
         while self.queue.qsize():
+            # Retrieve item from queue and put on the image
             try:
                 y, line = self.queue.get()
                 self.image.put(line, to=(0, y))
             except queue.Empty:
                 pass
+        if self.worker.is_alive():
+            # Repeat
+            self.root.after(100, self.periodic_call)
+        else:
+            self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
     def start_threaded(self):
         self.queue = queue.Queue()
@@ -112,7 +115,7 @@ class Window(object):
 def main():
     func = lambda z: z ** 2 - 0.4 + 0.6j
     app = Window(1000, 800, func, 100, 250)
-    app.start()
+    app.start_threaded()
 
 if __name__ == "__main__":
     main()
