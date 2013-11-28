@@ -14,10 +14,12 @@ class Worker(threading.Thread):
             mode: set type
             gen_params: parameters for generator function
         """
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, daemon=True)
         self.queue = queue
         if mode == "julia":
             self.gen = generator.julia2(**gen_params)
+        elif mode == "mandelbrot":
+            self.gen = generator.mandelbrot(**gen_params)
         else:
             self.gen = []
 
@@ -87,8 +89,8 @@ class Application(object):
 def main():
     app = Application(
         width=1200, height=900,
-        mode="julia", c=-0.8 + 0.16j, maxiter=100, scale=1250,
-        offset_x=300, offset_y=300)
+        mode="mandelbrot", maxiter=100, scale=200,
+        offset_x=0, offset_y=0)
     app.start()
 
 if __name__ == "__main__":
