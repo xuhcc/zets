@@ -1,96 +1,64 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import gradient
-import julia
+import generator
 import threading
 import queue
 
 class Worker(threading.Thread):
 
-    def __init__(self, queue, *gargs):
+    def __init__(self, queue, mode, gen_params):
         """
         Accepts:
             queue: Queue object
-            gargs: arguments for map generating function
+            mode: set type
+            gen_params: parameters for generator function
         """
         threading.Thread.__init__(self)
         self.queue = queue
-        self.gargs = gargs
+        if mode == "julia":
+            self.gen = generator.julia2(**gen_params)
+        else:
+            self.gen = []
 
     def run(self):
-        for item in julia.generate_map(*self.gargs):
+        for item in self.gen:
             self.queue.put(item)
 
-class Window(object):
+class Application(object):
 
-    def __init__(self, size_x, size_y, func, maxiter, scale):
-        self.size_x = size_x
-        self.size_y = size_y
-        self.func = func
-        self.maxiter = maxiter
-        self.scale = scale
-        self.colors = gradient.generate_gradient(
-            "#E1FFA2",
-            "#470063",
-            self.maxiter)
+    def __init__(self, width=800, height=600, mode="julia", **kwargs):
+        # Prepare window and elements
         self.root = tk.Tk()
-        self.root.title("Julia")
-        self.root.geometry("{0}x{1}+100+50".format(size_x + 2, size_y + 22))
+        self.root.title(mode)
+        self.root.geometry("{w}x{h}+{ox}+{oy}".format(
+            w=width + 2,
+            h=height + 2 + 20,
+            ox=100,
+            oy=50))
         self.canvas = tk.Canvas(
             self.root,
-            width=self.size_x,
-            height=self.size_y,
-            bd=2,
-            bg=self.colors[0])
+            width=width,
+            height=height,
+            bd=0,
+            bg="#eee")
         self.canvas.bind("<Button-1>", lambda e: self.quit())
         self.canvas.pack()
+        self.image = tk.PhotoImage(width=width, height=height)
         self.pgbar = tk.ttk.Progressbar(
             self.root,
             orient="horizontal",
             mode="determinate",
-            length=size_x,
-            maximum=size_y)
+            length=width,
+            maximum=height)
         self.pgbar.pack()
-
-    def draw_set_p(self):
-        """
-        Draw set using PhotoImage
-        """
-        ju = julia.generate_set(
-            self.func, self.size_x, self.size_y, self.scale, self.maxiter)
-        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
-        for x, y, i in ju:
-            if i > 0:
-                self.image.put(self.colors[i], (x, y))
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
-
-    def draw_set_pp(self):
-        """
-        Draw set using PhotoImage, alternative method
-        """
-        ju = julia.generate_map(
-            self.func,
-            self.size_x, self.size_y, self.scale,
-            self.maxiter, self.colors)
-        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
-        for y, line in ju:
-            self.image.put(line, to=(0, y))
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
-
-    def draw_set_l(self):
-        """
-        Draw set using lines
-        """
-        ju = julia.generate_set(
-            self.func, self.size_x, self.size_y, self.scale, self.maxiter)
-        for x, y, i in ju:
-            if i > 0:
-                self.canvas.create_line(
-                    x, y, x + 1, y + 1, fill=self.colors[i], width=1)
-        
-    def start(self):
-        self.root.after(100, self.draw_set_pp)
-        self.root.mainloop()
+        # Collect parameters for generator
+        self.gen_params = kwargs
+        self.gen_params['size_x'] = width
+        self.gen_params['size_y'] = height
+        # Set up worker
+        self.queue = queue.Queue()
+        self.worker = Worker(self.queue, mode, self.gen_params)
 
     def periodic_call(self):
         while self.queue.qsize():
@@ -107,11 +75,7 @@ class Window(object):
         else:
             self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
-    def start_threaded(self):
-        self.queue = queue.Queue()
-        self.worker = Worker(self.queue,
-            self.func, self.size_x, self.size_y, self.scale, self.maxiter, self.colors)
-        self.image = tk.PhotoImage(width=self.size_x, height=self.size_y)
+    def start(self):
         self.worker.start()
         self.root.after(100, self.periodic_call)
         self.root.mainloop()
@@ -121,9 +85,9 @@ class Window(object):
 
 
 def main():
-    func = lambda z: z ** 2 - 0.4 + 0.6j
-    app = Window(1200, 900, func, 100, 1000)
-    app.start_threaded()
+    app = Application(width=1200, height=900,
+            mode="julia", c=-0.8 + 0.16j, maxiter=100, scale=350)
+    app.start()
 
 if __name__ == "__main__":
     main()
