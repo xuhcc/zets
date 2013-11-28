@@ -88,7 +88,7 @@ class Application(object):
 
 def main():
     app = Application(
-        mode="julia", width=900, height=900, maxiter=100, zoom=2)
+        mode="mandelbrot", width=800, height=800, offset_x=-140, zoom=4, maxiter=100)
     app.start()
 
 if __name__ == "__main__":
