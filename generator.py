@@ -1,7 +1,7 @@
 import math
 import gradient
 
-def julia2(c=-0.4+0.6j, maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y=0, scale=200):
+def julia2(c=-0.4+0.6j, maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y=0, zoom=1):
     """
     Generate Julia set for function f(z) = z ^ 2 + c
     Accepts:
@@ -11,11 +11,14 @@ def julia2(c=-0.4+0.6j, maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y
         size_y: map height
         offset_x
         offset_y
-        scale: scale factor
+        zoom: magnification level
     """
     func = lambda z: z ** 2 + c
     R = (1 + math.sqrt(1 + 4 * abs(func(0)))) / 2
     colors = gradient.generate_gradient("#E1FFA2", "#470063", maxiter)
+    # Calculate scale
+    # Height 600 and zoom 1 translates into -2 < Im z < 2
+    scale = (size_y / 600) * (zoom * 150)
     for y in range(offset_y, size_y + offset_y):
         line = "{"
         for x in range(offset_x, size_x + offset_x):
@@ -32,7 +35,7 @@ def julia2(c=-0.4+0.6j, maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y
         line += "}"
         yield y - offset_y, line
 
-def mandelbrot(maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y=0, scale=200):
+def mandelbrot(maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y=0, zoom=1):
     """
     Generate Mandelbrot set
     Accepts:
@@ -41,11 +44,14 @@ def mandelbrot(maxiter=40, size_x=800, size_y=600, offset_x=0, offset_y=0, scale
         size_y: map height
         offset_x
         offset_y
-        scale: scale factor
+        zoom: magnification level
     """
     func = lambda z, c: z ** 2 + c
     R = 2
     colors = gradient.generate_gradient("#E1FFA2", "#470063", maxiter)
+    # Calculate scale
+    # Height 600 and zoom 1 translates into -2.5 < Im c < 2.5
+    scale = (size_y / 600) * (zoom * 120)
     for y in range(offset_y, size_y + offset_y):
         line = "{"
         for x in range(offset_x, size_x + offset_x):
