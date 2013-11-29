@@ -4,30 +4,24 @@ import threading
 import queue
 import time
 
-import gradient
 import generator
 
 class Worker(threading.Thread):
 
-    def __init__(self, queue, mode, gen_params):
+    def __init__(self, queue, gen):
         """
         Accepts:
             queue: Queue object
-            mode: set type
-            gen_params: parameters for generator function
+            gen: generator object
         """
         threading.Thread.__init__(self, daemon=True)
         self.queue = queue
-        if mode == "julia":
-            self.gen = generator.julia2(**gen_params)
-        elif mode == "mandelbrot":
-            self.gen = generator.mandelbrot(**gen_params)
-        else:
-            self.gen = []
+        self.gen = gen
 
     def run(self):
         for item in self.gen:
             self.queue.put(item)
+
 
 class Application(object):
 
@@ -56,13 +50,11 @@ class Application(object):
             length=width,
             maximum=height)
         self.pgbar.pack()
-        # Collect parameters for generator
-        self.gen_params = kwargs
-        self.gen_params['size_x'] = width
-        self.gen_params['size_y'] = height
         # Set up worker
         self.queue = queue.Queue()
-        self.worker = Worker(self.queue, mode, self.gen_params)
+        self.worker = Worker(
+            self.queue,
+            generator.draw_map(size_x=width, size_y=height, mode=mode, **kwargs))
 
     def periodic_call(self):
         while self.queue.qsize():
@@ -92,7 +84,7 @@ class Application(object):
 
 def main():
     app = Application(
-        mode="julia", width=900, height=900, maxiter=250)
+        mode="mandelbrot", width=900, height=900, zoom=128, offset_x=-206, offset_y=-13, maxiter=100)
     app.start()
 
 if __name__ == "__main__":
