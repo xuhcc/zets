@@ -1,9 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-import gradient
-import generator
 import threading
 import queue
+import time
+
+import gradient
+import generator
 
 class Worker(threading.Thread):
 
@@ -76,8 +78,10 @@ class Application(object):
             self.root.after(100, self.periodic_call)
         else:
             self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+            print("Image created in {0} sec".format(time.time() - self.start_time))
 
     def start(self):
+        self.start_time = time.time()
         self.worker.start()
         self.root.after(100, self.periodic_call)
         self.root.mainloop()
@@ -88,7 +92,7 @@ class Application(object):
 
 def main():
     app = Application(
-        mode="mandelbrot", width=800, height=800, offset_x=-140, zoom=4, maxiter=100)
+        mode="julia", width=900, height=900, maxiter=250)
     app.start()
 
 if __name__ == "__main__":
