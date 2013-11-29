@@ -65,7 +65,14 @@ def draw_map(
     scale = (size_y / 600) * (zoom * 100)
     offset_x = offset_x * zoom
     offset_y = offset_y * zoom
-    colors = gradient.generate_gradient("#CAE6FF", "#460063", maxiter)
+    col_table = [
+        (0, "#DEFFDC"),
+        (10, "#6870FF"),
+        (20, "#8040FF"),
+        (30, "#8121BF"),
+        (100, "#440034"),
+    ]
+    colors = gradient.create_gradient(col_table, maxiter)
     for y in range(0, size_y):
         line = "{"
         for x in range(0, size_x):
