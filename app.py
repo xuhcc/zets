@@ -25,7 +25,7 @@ class Worker(threading.Thread):
 
 class Application(object):
 
-    def __init__(self, width=800, height=600, mode="julia", **kwargs):
+    def __init__(self, width=800, height=600, mode="julia", file=None, **kwargs):
         # Prepare window and elements
         self.root = tk.Tk()
         self.root.title(mode)
@@ -34,6 +34,16 @@ class Application(object):
             h=height + 2 + 20,
             ox=100,
             oy=50))
+        self.file = file
+        # Create progress bar
+        self.pgbar = tk.ttk.Progressbar(
+            self.root,
+            orient="horizontal",
+            mode="determinate",
+            length=width,
+            maximum=height)
+        self.pgbar.pack()
+        # Create canvas
         self.canvas = tk.Canvas(
             self.root,
             width=width,
@@ -43,13 +53,6 @@ class Application(object):
         self.canvas.bind("<Button-1>", lambda e: self.quit())
         self.canvas.pack()
         self.image = tk.PhotoImage(width=width, height=height)
-        self.pgbar = tk.ttk.Progressbar(
-            self.root,
-            orient="horizontal",
-            mode="determinate",
-            length=width,
-            maximum=height)
-        self.pgbar.pack()
         # Set up worker
         self.queue = queue.Queue()
         self.worker = Worker(
@@ -70,6 +73,8 @@ class Application(object):
             self.root.after(100, self.periodic_call)
         else:
             self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+            if self.file is not None:
+                self.canvas.postscript(file=self.file)
             print("Image created in {0} sec".format(time.time() - self.start_time))
 
     def start(self):
@@ -84,7 +89,8 @@ class Application(object):
 
 def main():
     app = Application(
-        mode="mandelbrot", width=900, height=900, zoom=800, offset_x=-206, offset_y=-12.8, maxiter=600)
+        mode="mandelbrot", maxiter=600, file="fractal.eps",
+        width=900, height=900, zoom=800, offset_x=-206, offset_y=-12.8)
     app.start()
 
 if __name__ == "__main__":
