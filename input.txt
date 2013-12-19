@@ -1,0 +1,7 @@
+mode mandelbrot
+width 1200
+height 900
+offset_x 0
+offset_y 0
+zoom 2
+maxiter 100

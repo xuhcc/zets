@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import threading
 import queue
 import time
+import argparse
 
 import generator
 
@@ -25,7 +26,7 @@ class Worker(threading.Thread):
 
 class Application(object):
 
-    def __init__(self, width=800, height=600, mode="julia", file=None, **kwargs):
+    def __init__(self, width=800, height=600, mode="julia", output_file=None, **kwargs):
         # Prepare window and elements
         self.root = tk.Tk()
         self.root.title(mode)
@@ -34,7 +35,7 @@ class Application(object):
             h=height + 2 + 20,
             ox=100,
             oy=50))
-        self.file = file
+        self.output_file = output_file
         # Create progress bar
         self.pgbar = tk.ttk.Progressbar(
             self.root,
@@ -73,8 +74,8 @@ class Application(object):
             self.root.after(100, self.periodic_call)
         else:
             self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
-            if self.file is not None:
-                self.canvas.postscript(file=self.file)
+            if self.output_file is not None:
+                self.canvas.postscript(file=self.output_file.name)
             print("Image created in {0} sec".format(time.time() - self.start_time))
 
     def start(self):
@@ -88,9 +89,20 @@ class Application(object):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", type=argparse.FileType("r"))
+    parser.add_argument("-o", type=argparse.FileType("w"))
+    args = parser.parse_args()
+    settings = dict(line.split() for line in args.i)
     app = Application(
-        mode="mandelbrot", maxiter=600, file="fractal.eps",
-        width=900, height=900, zoom=800, offset_x=-206, offset_y=-12.8)
+        mode=settings['mode'],
+        width=int(settings['width']),
+        height=int(settings['height']),
+        offset_x=float(settings['offset_x']),
+        offset_y=float(settings['offset_y']),
+        zoom=float(settings['zoom']),
+        maxiter=int(settings['maxiter']),
+        output_file=args.o)
     app.start()
 
 if __name__ == "__main__":
