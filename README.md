@@ -1,4 +1,7 @@
-zset-explorer
+zets
 =============
 
-Visualize Julia set
+Visualize Julia and Mandelbrot set
+
+Dependencies:
+- Tcl/Tk
